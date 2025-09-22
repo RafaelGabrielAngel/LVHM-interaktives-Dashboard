@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LVMH Digital Card Dashboard</title>
+    <style>
+        :root{
+            --bg:#0b1222; --card:#0f172a; --ink:#e5e7eb; --muted:#94a3b8;
+            --acc:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --line:#1f2937;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Inter, system-ui, Arial; 
+            background: #0b1222; 
+            margin: 0; 
+            padding: 20px;
+            color: var(--ink);
+        }
+        .dashboard { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            display: grid; 
+            gap: 20px; 
+            grid-template-columns: 350px 1fr;
+        }
+        .panel { 
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%); 
+            border: 1px solid #1f2937; 
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: 0 16px 40px rgba(0,0,0,.35);
+        }
+        .panel h2 { 
+            margin: 0 0 16px 0; 
+            color: #60a5fa; 
+            font-size: 18px; 
+            font-weight: 700;
+        }
+        .input-group { 
+            margin-bottom: 16px; 
+        }
+        .input-group label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-size: 13px; 
+            font-weight: 500; 
+            color: #cbd5e1;
+        }
+        .input-group input, .input-group select { 
+            width: 100%; 
+            padding: 8px 12px; 
+            background: #1e293b; 
+            border: 1px solid #374151; 
+            border-radius: 8px; 
+            color: #e5e7eb; 
+            font-size: 14px;
+        }
+        .input-group input:focus, .input-group select:focus { 
+            outline: none; 
+            border-color: #60a5fa; 
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+        .kpi-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            margin-bottom: 20px;
+        }
+        .kpi { 
+            padding: 16px; 
+            border-radius: 12px; 
+            text-align: center; 
+            color: white;
+        }
+        .kpi .label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            letter-spacing: 0.05em; 
+            opacity: 0.9; 
+            margin-bottom: 4px;
+        }
+        .kpi .value { 
+            font-size: 22px; 
+            font-weight: 900;
+        }
+        .kpi.blue { background: linear-gradient(135deg, #1d4ed8, #60a5fa); }
+        .kpi.green { background: linear-gradient(135deg, #047857, #34d399); }
+        .kpi.gold { background: linear-gradient(135deg, #92400e, #f59e0b); }
+        .kpi.purple { background: linear-gradient(135deg, #6d28d9, #a78bfa); }
+        .table-container { 
+            overflow-x: auto; 
+            margin-top: 20px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            font-size: 14px;
+        }
+        th { 
+            background: #0b1222; 
+            color: #cbd5e1; 
+            padding: 12px; 
+            font-weight: 700; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.04em; 
+            border-bottom: 1px solid var(--line);
+        }
+        td { 
+            padding: 10px 12px; 
+            border-bottom: 1px solid #1f2937; 
+            color: #e2e8f0; 
+            text-align: center;
+        }
+        tr:nth-child(even) td { background: #0e162a; }
+        .positive { color: #34d399; font-weight: 700; }
+        .negative { color: #ef4444; font-weight: 700; }
+        .highlight { background: #1e3a8a !important; }
+        .chart-container { 
+            height: 300px; 
+            margin-top: 20px; 
+            position: relative;
+        }
+        .reset-btn { 
+            background: #374151; 
+            color: white; 
+            border: none; 
+            padding: 10px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-top: 10px; 
+            width: 100%;
+        }
+        .reset-btn:hover { background: #4b5563; }
+        .status { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #10b981; 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="status">✅ Dashboard läuft</div>
+    
+    <div class="dashboard">
+        <div class="panel">
+            <h2>📊 Parameter</h2>
+            
+            <div class="input-group">
+                <label>Initial CapEx (Mio. €)</label>
+                <input type="number" id="initial_capex" value="18" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label>WACC / Discount Rate (%)</label>
+                <input type="number" id="discount" value="10" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label>Steuersatz (%)</label>
+                <input type="number" id="tax" value="28" step="1">
+            </div>
+            
+            <div class="input-group">
+                <label>Fixe OpEx (Mio. €/Jahr)</label>
+                <input type="number" id="fix_opex" value="6" step="0.5">
+            </div>
+            
+            <h2>🎯 UHNW Segment</h2>
+            
+            <div class="input-group">
+                <label>UHNW CAC (€)</label>
+                <input type="number" id="uhnw_cac" value="900" step="50">
+            </div>
+            
+            <div class="input-group">
+                <label>UHNW Fee (€/Jahr)</label>
+                <input type="number" id="uhnw_fee" value="5000" step="100">
+            </div>
+            
+            <div class="input-group">
+                <label>UHNW Churn Rate (%)</label>
+                <input type="number" id="uhnw_churn" value="8" step="0.5">
+            </div>
+            
+            <h2>💳 Aspirational Segment</h2>
+            
+            <div class="input-group">
+                <label>Aspirational CAC (€)</label>
+                <input type="number" id="asp_cac" value="400" step="25">
+            </div>
+            
+            <div class="input-group">
+                <label>Aspirational Fee (€/Jahr)</label>
+                <input type="number" id="asp_fee" value="1200" step="50">
+            </div>
+            
+            <div class="input-group">
+                <label>Aspirational Churn Rate (%)</label>
+                <input type="number" id="asp_churn" value="18" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label>Net Revenue Rate (%)</label>
+                <input type="number" id="rev_rate" value="0.65" step="0.05">
+            </div>
+            
+            <div class="input-group">
+                <label>Data Revenue (Mio. €/Jahr ab J3)</label>
+                <input type="number" id="data_revenue" value="3" step="0.5">
+            </div>
+            
+            <button class="reset-btn" onclick="resetToDefaults()">🔄 Zurücksetzen</button>
+        </div>
+        
+        <div>
+            <div class="panel">
+                <h2>📈 Key Performance Indicators</h2>
+                <div class="kpi-grid">
+                    <div class="kpi blue">
+                        <div class="label">NPV (7 Jahre)</div>
+                        <div class="value" id="npv-value">€54,2M</div>
+                    </div>
+                    <div class="kpi green">
+                        <div class="label">IRR</div>
+                        <div class="value" id="irr-value">28,3%</div>
+                    </div>
+                    <div class="kpi gold">
+                        <div class="label">Break-even</div>
+                        <div class="value" id="be-value">J4</div>
+                    </div>
+                    <div class="kpi purple">
+                        <div class="label">FCF Jahr 7</div>
+                        <div class="value" id="fcf-value">€25,1M</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="cashFlowChart" width="800" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>💰 Finanzprojektion</h2>
+                <div class="table-container">
+                    <table id="financial-table">
+                        <thead>
+                            <tr>
+                                <th>Jahr</th>
+                                <th>Kunden</th>
+                                <th>Revenue (M€)</th>
+                                <th>EBITDA (M€)</th>
+                                <th>FCF (M€)</th>
+                                <th>Kum. FCF (M€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0,0</td>
+                                <td>0,0</td>
+                                <td class="negative">-18,0</td>
+                                <td class="negative">-18,0</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>800</td>
+                                <td>5,1</td>
+                                <td class="negative">-2,1</td>
+                                <td class="negative">-2,2</td>
+                                <td class="negative">-20,2</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>2.800</td>
+                                <td>16,0</td>
+                                <td>8,2</td>
+                                <td>7,6</td>
+                                <td class="negative">-12,6</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>8.000</td>
+                                <td>44,9</td>
+                                <td>33,9</td>
+                                <td>31,6</td>
+                                <td class="positive">19,0</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>4</td>
+                                <td>13.000</td>
+                                <td>70,5</td>
+                                <td>57,3</td>
+                                <td>53,2</td>
+                                <td class="positive">72,2</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>17.500</td>
+                                <td>93,5</td>
+                                <td>78,8</td>
+                                <td>73,2</td>
+                                <td class="positive">145,4</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>20.800</td>
+                                <td>110,3</td>
+                                <td>95,0</td>
+                                <td>88,1</td>
+                                <td class="positive">233,5</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>24.000</td>
+                                <td>126,5</td>
+                                <td>109,5</td>
+                                <td>101,5</td>
+                                <td class="positive">335,0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Financial calculation functions
+        function npv(rate, cashflows) {
+            return cashflows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + rate, t), 0);
+        }
+        
+        function irrBisection(cashflows, lo = -0.99, hi = 5.0, tol = 1e-7, maxIter = 200) {
+            function f(r) { return npv(r, cashflows); }
+            let fLo = f(lo);
+            let fHi = f(hi);
+            
+            if (fLo * fHi > 0) return NaN;
+            
+            for (let i = 0; i < maxIter; i++) {
+                let mid = (lo + hi) / 2;
+                let val = f(mid);
+                
+                if (Math.abs(val) < tol) return mid;
+                
+                if (fLo * val < 0) {
+                    hi = mid;
+                    fHi = val;
+                } else {
+                    lo = mid;
+                    fLo = val;
+                }
+            }
+            return (lo + hi) / 2;
+        }
+        
+        function formatMoney(value) {
+            return `€${(value / 1e6).toFixed(1)}M`.replace('.', ',');
+        }
+        
+        function getInputs() {
+            return {
+                initial_capex: parseFloat(document.getElementById('initial_capex').value) * 1e6,
+                discount: parseFloat(document.getElementById('discount').value) / 100,
+                tax: parseFloat(document.getElementById('tax').value) / 100,
+                fix_opex: parseFloat(document.getElementById('fix_opex').value) * 1e6,
+                uhnw_cac: parseFloat(document.getElementById('uhnw_cac').value),
+                uhnw_fee: parseFloat(document.getElementById('uhnw_fee').value),
+                uhnw_churn: parseFloat(document.getElementById('uhnw_churn').value) / 100,
+                asp_cac: parseFloat(document.getElementById('asp_cac').value),
+                asp_fee: parseFloat(document.getElementById('asp_fee').value),
+                asp_churn: parseFloat(document.getElementById('asp_churn').value) / 100,
+                rev_rate: parseFloat(document.getElementById('rev_rate').value) / 100,
+                data_revenue: parseFloat(document.getElementById('data_revenue').value) * 1e6
+            };
+        }
+        
+        function runCalculation() {
+            const inputs = getInputs();
+            
+            // Customer projections
+            const uhnw_customers = [200, 600, 1200, 2000, 3000, 3500, 3800, 4000];
+            const asp_customers = [0, 800, 2000, 6000, 10000, 14000, 17000, 20000];
+            
+            const results = [];
+            let cumCF = -inputs.initial_capex;
+            let prevRev = 0;
+            
+            for (let year = 0; year <= 7; year++) {
+                if (year === 0) {
+                    results.push({
+                        year: 0,
+                        customers: 0,
+                        revenue: 0,
+                        ebitda: 0,
+                        fcf: -inputs.initial_capex,
+                        cumFcf: cumCF
+                    });
+                    continue;
+                }
+                
+                // Calculate customers and revenue
+                const uhnw_active = uhnw_customers[year];
+                const asp_active = asp_customers[year];
+                const total_customers = uhnw_active + asp_active;
+                
+                // Calculate new customers (simplified)
+                const uhnw_prev = year > 0 ? uhnw_customers[year - 1] : 0;
+                const asp_prev = year > 0 ? asp_customers[year - 1] : 0;
+                
+                const uhnw_retained = Math.round(uhnw_prev * (1 - inputs.uhnw_churn));
+                const asp_retained = Math.round(asp_prev * (1 - inputs.asp_churn));
+                
+                const uhnw_new = Math.max(0, uhnw_active - uhnw_retained);
+                const asp_new = Math.max(0, asp_active - asp_retained);
+                
+                const total_cac = uhnw_new * inputs.uhnw_cac + asp_new * inputs.asp_cac;
+                
+                // Revenue calculation
+                const uhnw_card_rev = uhnw_active * 120000 * inputs.rev_rate;
+                const asp_card_rev = asp_active * 45000 * inputs.rev_rate;
+                const uhnw_fee_rev = uhnw_active * inputs.uhnw_fee;
+                const asp_fee_rev = asp_active * inputs.asp_fee;
+                const data_rev = year >= 3 ? inputs.data_revenue : 0;
+                
+                const total_revenue = uhnw_card_rev + asp_card_rev + uhnw_fee_rev + asp_fee_rev + data_rev;
+                
+                // Variable OpEx
+                const var_opex = total_customers * 200;
+                
+                // EBITDA
+                const ebitda = total_revenue - inputs.fix_opex - var_opex - total_cac;
+                
+                // CapEx and Working Capital
+                const capex_run = total_revenue * 0.01;
+                const delta_wc = Math.max(0, (total_revenue - prevRev) * 0.03);
+                prevRev = total_revenue;
+                
+                // Tax (only on positive EBIT)
+                const tax = Math.max(0, ebitda * inputs.tax);
+                
+                // FCF
+                const fcf = ebitda - tax - capex_run - delta_wc;
+                cumCF += fcf;
+                
+                results.push({
+                    year,
+                    customers: total_customers,
+                    revenue: total_revenue,
+                    ebitda,
+                    fcf,
+                    cumFcf: cumCF
+                });
+            }
+            
+            // Calculate KPIs
+            const cashflows = results.map(r => r.fcf);
+            const npvValue = npv(inputs.discount, cashflows);
+            const irrValue = irrBisection(cashflows);
+            const breakeven = results.findIndex(r => r.cumFcf >= 0);
+            const fcfY7 = results[7].fcf;
+            
+            return {
+                results,
+                kpis: {
+                    npv: npvValue,
+                    irr: irrValue,
+                    breakeven: breakeven > 0 ? breakeven : null,
+                    fcfY7
+                }
+            };
+        }
+        
+        function updateDisplay() {
+            const { results, kpis } = runCalculation();
+            
+            // Update KPIs
+            document.getElementById('npv-value').textContent = formatMoney(kpis.npv);
+            document.getElementById('irr-value').textContent = isNaN(kpis.irr) ? '—' : `${(kpis.irr * 100).toFixed(1)}%`.replace('.', ',');
+            document.getElementById('be-value').textContent = kpis.breakeven ? `J${kpis.breakeven}` : 'n.a.';
+            document.getElementById('fcf-value').textContent = formatMoney(kpis.fcfY7);
+            
+            // Update table
+            const tbody = document.querySelector('#financial-table tbody');
+            tbody.innerHTML = '';
+            
+            results.forEach(row => {
+                const tr = document.createElement('tr');
+                if (row.year === 4) tr.classList.add('highlight');
+                
+                tr.innerHTML = `
+                    <td>${row.year}</td>
+                    <td>${row.customers.toLocaleString('de-DE')}</td>
+                    <td>${(row.revenue / 1e6).toFixed(1).replace('.', ',')}</td>
+                    <td>${(row.ebitda / 1e6).toFixed(1).replace('.', ',')}</td>
+                    <td class="${row.fcf >= 0 ? 'positive' : 'negative'}">${(row.fcf / 1e6).toFixed(1).replace('.', ',')}</td>
+                    <td class="${row.cumFcf >= 0 ? 'positive' : 'negative'}">${(row.cumFcf / 1e6).toFixed(1).replace('.', ',')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Update chart
+            updateChart(results);
+        }
+        
+        function updateChart(results) {
+            const canvas = document.getElementById('cashFlowChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            
+            // Find data bounds
+            const fcfValues = results.map(r => r.fcf / 1e6);
+            const cumValues = results.map(r => r.cumFcf / 1e6);
+            const minY = Math.min(...fcfValues, ...cumValues);
+            const maxY = Math.max(...fcfValues, ...cumValues);
+            const rangeY = maxY - minY;
+            
+            // Draw grid and axes
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 1;
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.stroke();
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+            
+            // Zero line
+            if (minY < 0 && maxY > 0) {
+                const zeroY = padding + chartHeight - (-minY / rangeY * chartHeight);
+                ctx.strokeStyle = '#6b7280';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(padding, zeroY);
+                ctx.lineTo(padding + chartWidth, zeroY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Draw FCF bars
+            ctx.fillStyle = '#60a5fa';
+            const barWidth = chartWidth / results.length * 0.4;
+            
+            results.forEach((row, i) => {
+                const x = padding + (i / (results.length - 1)) * chartWidth - barWidth / 2;
+                const value = row.fcf / 1e6;
+                const height = Math.abs(value) / rangeY * chartHeight;
+                const y = value >= 0 ? 
+                    padding + chartHeight - (-minY / rangeY * chartHeight) - height :
+                    padding + chartHeight - (-minY / rangeY * chartHeight);
+                
+                ctx.fillRect(x, y, barWidth, height);
+            });
+            
+            // Draw cumulative FCF line
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            results.forEach((row, i) => {
+                const x = padding + (i / (results.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((row.cumFcf / 1e6 - minY) / rangeY * chartHeight);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#e5e7eb';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            
+            // X-axis labels (years)
+            results.forEach((row, i) => {
+                const x = padding + (i / (results.length - 1)) * chartWidth;
+                ctx.fillText(`J${row.year}`, x, canvas.height - 20);
+            });
+            
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            const steps = 5;
+            for (let i = 0; i <= steps; i++) {
+                const value = minY + (rangeY * i / steps);
+                const y = padding + chartHeight - (i / steps * chartHeight);
+                ctx.fillText(`${value.toFixed(1)}M`, padding - 10, y + 4);
+            }
+            
+            // Legend
+            ctx.font = '14px Inter';
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillRect(padding + 20, padding + 20, 15, 15);
+            ctx.fillStyle = '#e5e7eb';
+            ctx.textAlign = 'left';
+            ctx.fillText('FCF', padding + 40, padding + 32);
+            
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(padding + 100, padding + 27);
+            ctx.lineTo(padding + 115, padding + 27);
+            ctx.stroke();
+            ctx.fillText('Kum. FCF', padding + 120, padding + 32);
+        }
+        
+        function resetToDefaults() {
+            document.getElementById('initial_capex').value = '18';
+            document.getElementById('discount').value = '10';
+            document.getElementById('tax').value = '28';
+            document.getElementById('fix_opex').value = '6';
+            document.getElementById('uhnw_cac').value = '900';
+            document.getElementById('uhnw_fee').value = '5000';
+            document.getElementById('uhnw_churn').value = '8';
+            document.getElementById('asp_cac').value = '400';
+            document.getElementById('asp_fee').value = '1200';
+            document.getElementById('asp_churn').value = '18';
+            document.getElementById('rev_rate').value = '0.65';
+            document.getElementById('data_revenue').value = '3';
+            updateDisplay();
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateDisplay);
+            });
+            
+            // Initial load with default values
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
