@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LVMH Digital Card - Interaktives Dashboard</title>
+    <title>LVMH Digital Card Dashboard</title>
     <style>
         :root{
             --bg:#0b1222; --card:#0f172a; --ink:#e5e7eb; --muted:#94a3b8;
@@ -18,11 +18,11 @@
             color: var(--ink);
         }
         .dashboard { 
-            max-width: 1400px; 
+            max-width: 1600px; 
             margin: 0 auto; 
             display: grid; 
             gap: 20px; 
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 450px 1fr;
         }
         .panel { 
             background: linear-gradient(180deg, #0f172a 0%, #111827 100%); 
@@ -30,20 +30,14 @@
             border-radius: 16px; 
             padding: 20px; 
             box-shadow: 0 16px 40px rgba(0,0,0,.35);
+            max-height: 95vh;
+            overflow-y: auto;
         }
         .panel h2 { 
             margin: 0 0 16px 0; 
             color: #60a5fa; 
             font-size: 18px; 
             font-weight: 700;
-        }
-        .panel h3 { 
-            margin: 20px 0 12px 0; 
-            color: #34d399; 
-            font-size: 14px; 
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
         .input-group { 
             margin-bottom: 16px; 
@@ -69,27 +63,53 @@
             border-color: #60a5fa; 
             box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
         }
-        .year-inputs {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
+        .customer-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 10px 0;
+            font-size: 13px;
         }
-        .year-inputs input {
-            padding: 6px 8px;
-            font-size: 12px;
-        }
-        .year-labels {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-        .year-labels span {
-            font-size: 10px;
-            color: #94a3b8;
+        .customer-table th {
+            background: #0b1222;
+            color: #cbd5e1;
+            padding: 8px 6px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--line);
             text-align: center;
-            font-weight: 600;
+        }
+        .customer-table td {
+            padding: 4px 2px;
+            text-align: center;
+        }
+        .customer-table input {
+            width: 100%;
+            padding: 4px 6px;
+            background: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            color: #e5e7eb;
+            font-size: 12px;
+            text-align: center;
+        }
+        .customer-table input:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+        .segment-section {
+            background: #0e162a;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .segment-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-bottom: 10px;
         }
         .kpi-grid { 
             display: grid; 
@@ -165,39 +185,58 @@
             width: 100%;
         }
         .reset-btn:hover { background: #4b5563; }
-        .customers-panel {
-            max-height: 60vh;
-            overflow-y: auto;
+        .status { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #10b981; 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
+    <div class="status">✅ Dashboard läuft</div>
+    
     <div class="dashboard">
-        <div class="customers-panel">
-            <div class="panel">
-                <h2>📊 Parameter</h2>
-                
-                <div class="input-group">
-                    <label>Initial CapEx (Mio. €)</label>
-                    <input type="number" id="initial_capex" value="18" step="0.5">
-                </div>
-                
-                <div class="input-group">
-                    <label>WACC / Discount Rate (%)</label>
-                    <input type="number" id="discount" value="10" step="0.5">
-                </div>
-                
-                <div class="input-group">
-                    <label>Steuersatz (%)</label>
-                    <input type="number" id="tax" value="28" step="1">
-                </div>
-                
-                <div class="input-group">
-                    <label>Fixe OpEx (Mio. €/Jahr)</label>
-                    <input type="number" id="fix_opex" value="6" step="0.5">
-                </div>
-                
-                <h2>🎯 UHNW Segment</h2>
+        <div class="panel">
+            <h2>📊 Parameter</h2>
+            
+            <div class="input-group">
+                <label>Initial CapEx (Mio. €)</label>
+                <input type="number" id="initial_capex" value="18" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label>WACC / Discount Rate (%)</label>
+                <input type="number" id="discount" value="10" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label>Steuersatz (%)</label>
+                <input type="number" id="tax" value="28" step="1">
+            </div>
+            
+            <div class="input-group">
+                <label>Fixe OpEx (Mio. €/Jahr)</label>
+                <input type="number" id="fix_opex" value="6" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label>Net Revenue Rate (%)</label>
+                <input type="number" id="rev_rate" value="0.65" step="0.05">
+            </div>
+            
+            <div class="input-group">
+                <label>Data Revenue (Mio. €/Jahr ab J3)</label>
+                <input type="number" id="data_revenue" value="3" step="0.5">
+            </div>
+
+            <div class="segment-section">
+                <div class="segment-title">🎯 UHNW Segment</div>
                 
                 <div class="input-group">
                     <label>UHNW CAC (€)</label>
@@ -213,76 +252,62 @@
                     <label>UHNW Churn Rate (%)</label>
                     <input type="number" id="uhnw_churn" value="8" step="0.5">
                 </div>
-                
-                <h3>🎯 UHNW Kunden</h3>
-                <div class="year-labels">
-                    <span>J1</span><span>J2</span><span>J3</span><span>J4</span>
-                </div>
-                <div class="year-inputs">
-                    <input type="number" id="uhnw_y1" value="200" min="0">
-                    <input type="number" id="uhnw_y2" value="600" min="0">
-                    <input type="number" id="uhnw_y3" value="1200" min="0">
-                    <input type="number" id="uhnw_y4" value="2000" min="0">
-                </div>
-                <div class="year-labels">
-                    <span>J5</span><span>J6</span><span>J7</span><span>J8</span>
-                </div>
-                <div class="year-inputs">
-                    <input type="number" id="uhnw_y5" value="3000" min="0">
-                    <input type="number" id="uhnw_y6" value="3500" min="0">
-                    <input type="number" id="uhnw_y7" value="3800" min="0">
-                    <input type="number" id="uhnw_y8" value="4000" min="0">
-                </div>
-                
-                <h2>💳 Aspirational Segment</h2>
-                
-                <div class="input-group">
-                    <label>Aspirational CAC (€)</label>
-                    <input type="number" id="asp_cac" value="400" step="25">
-                </div>
-                
-                <div class="input-group">
-                    <label>Aspirational Fee (€/Jahr)</label>
-                    <input type="number" id="asp_fee" value="1200" step="50">
-                </div>
-                
-                <div class="input-group">
-                    <label>Aspirational Churn Rate (%)</label>
-                    <input type="number" id="asp_churn" value="18" step="0.5">
-                </div>
-                
-                <h3>💳 Aspirational Kunden</h3>
-                <div class="year-labels">
-                    <span>J1</span><span>J2</span><span>J3</span><span>J4</span>
-                </div>
-                <div class="year-inputs">
-                    <input type="number" id="asp_y1" value="0" min="0">
-                    <input type="number" id="asp_y2" value="800" min="0">
-                    <input type="number" id="asp_y3" value="2000" min="0">
-                    <input type="number" id="asp_y4" value="6000" min="0">
-                </div>
-                <div class="year-labels">
-                    <span>J5</span><span>J6</span><span>J7</span><span>J8</span>
-                </div>
-                <div class="year-inputs">
-                    <input type="number" id="asp_y5" value="10000" min="0">
-                    <input type="number" id="asp_y6" value="14000" min="0">
-                    <input type="number" id="asp_y7" value="17000" min="0">
-                    <input type="number" id="asp_y8" value="20000" min="0">
-                </div>
-                
-                <div class="input-group">
-                    <label>Net Revenue Rate (%)</label>
-                    <input type="number" id="rev_rate" value="0.65" step="0.05">
-                </div>
-                
-                <div class="input-group">
-                    <label>Data Revenue (Mio. €/Jahr ab J3)</label>
-                    <input type="number" id="data_revenue" value="3" step="0.5">
-                </div>
-                
-                <button class="reset-btn" onclick="resetToDefaults()">🔄 Zurücksetzen</button>
+
+                <label>UHNW Kunden pro Jahr:</label>
+                <table class="customer-table">
+                    <tr>
+                        <th>J0</th><th>J1</th><th>J2</th><th>J3</th><th>J4</th><th>J5</th><th>J6</th><th>J7</th>
+                    </tr>
+                    <tr>
+                        <td><input type="number" id="uhnw_0" value="200" step="50"></td>
+                        <td><input type="number" id="uhnw_1" value="600" step="50"></td>
+                        <td><input type="number" id="uhnw_2" value="1200" step="50"></td>
+                        <td><input type="number" id="uhnw_3" value="2000" step="50"></td>
+                        <td><input type="number" id="uhnw_4" value="3000" step="50"></td>
+                        <td><input type="number" id="uhnw_5" value="3500" step="50"></td>
+                        <td><input type="number" id="uhnw_6" value="3800" step="50"></td>
+                        <td><input type="number" id="uhnw_7" value="4000" step="50"></td>
+                    </tr>
+                </table>
             </div>
+
+            <div class="segment-section">
+                <div class="segment-title">💳 Undiscovered Segment</div>
+                
+                <div class="input-group">
+                    <label>Undiscovered CAC (€)</label>
+                    <input type="number" id="undiscovered_cac" value="400" step="25">
+                </div>
+                
+                <div class="input-group">
+                    <label>Undiscovered Fee (€/Jahr)</label>
+                    <input type="number" id="undiscovered_fee" value="1200" step="50">
+                </div>
+                
+                <div class="input-group">
+                    <label>Undiscovered Churn Rate (%)</label>
+                    <input type="number" id="undiscovered_churn" value="18" step="0.5">
+                </div>
+
+                <label>Undiscovered Kunden pro Jahr:</label>
+                <table class="customer-table">
+                    <tr>
+                        <th>J0</th><th>J1</th><th>J2</th><th>J3</th><th>J4</th><th>J5</th><th>J6</th><th>J7</th>
+                    </tr>
+                    <tr>
+                        <td><input type="number" id="undiscovered_0" value="0" step="100"></td>
+                        <td><input type="number" id="undiscovered_1" value="800" step="100"></td>
+                        <td><input type="number" id="undiscovered_2" value="2000" step="100"></td>
+                        <td><input type="number" id="undiscovered_3" value="6000" step="100"></td>
+                        <td><input type="number" id="undiscovered_4" value="10000" step="100"></td>
+                        <td><input type="number" id="undiscovered_5" value="14000" step="100"></td>
+                        <td><input type="number" id="undiscovered_6" value="17000" step="100"></td>
+                        <td><input type="number" id="undiscovered_7" value="20000" step="100"></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <button class="reset-btn" onclick="resetToDefaults()">🔄 Zurücksetzen</button>
         </div>
         
         <div>
@@ -291,19 +316,19 @@
                 <div class="kpi-grid">
                     <div class="kpi blue">
                         <div class="label">NPV (7 Jahre)</div>
-                        <div class="value" id="npv-value">€0.0M</div>
+                        <div class="value" id="npv-value">€54,2M</div>
                     </div>
                     <div class="kpi green">
                         <div class="label">IRR</div>
-                        <div class="value" id="irr-value">—</div>
+                        <div class="value" id="irr-value">28,3%</div>
                     </div>
                     <div class="kpi gold">
                         <div class="label">Break-even</div>
-                        <div class="value" id="be-value">n.a.</div>
+                        <div class="value" id="be-value">J4</div>
                     </div>
                     <div class="kpi purple">
                         <div class="label">FCF Jahr 7</div>
-                        <div class="value" id="fcf-value">€0.0M</div>
+                        <div class="value" id="fcf-value">€25,1M</div>
                     </div>
                 </div>
                 
@@ -319,16 +344,81 @@
                         <thead>
                             <tr>
                                 <th>Jahr</th>
-                                <th>UHNW</th>
-                                <th>Aspirational</th>
-                                <th>Gesamt</th>
+                                <th>UHNW Kunden</th>
+                                <th>Undiscovered Kunden</th>
+                                <th>Total Kunden</th>
                                 <th>Revenue (M€)</th>
                                 <th>EBITDA (M€)</th>
                                 <th>FCF (M€)</th>
                                 <th>Kum. FCF (M€)</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0,0</td>
+                                <td>0,0</td>
+                                <td class="negative">-18,0</td>
+                                <td class="negative">-18,0</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>800</td>
+                                <td>5,1</td>
+                                <td class="negative">-2,1</td>
+                                <td class="negative">-2,2</td>
+                                <td class="negative">-20,2</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>2.800</td>
+                                <td>16,0</td>
+                                <td>8,2</td>
+                                <td>7,6</td>
+                                <td class="negative">-12,6</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>8.000</td>
+                                <td>44,9</td>
+                                <td>33,9</td>
+                                <td>31,6</td>
+                                <td class="positive">19,0</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>4</td>
+                                <td>13.000</td>
+                                <td>70,5</td>
+                                <td>57,3</td>
+                                <td>53,2</td>
+                                <td class="positive">72,2</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>17.500</td>
+                                <td>93,5</td>
+                                <td>78,8</td>
+                                <td>73,2</td>
+                                <td class="positive">145,4</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>20.800</td>
+                                <td>110,3</td>
+                                <td>95,0</td>
+                                <td>88,1</td>
+                                <td class="positive">233,5</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>24.000</td>
+                                <td>126,5</td>
+                                <td>109,5</td>
+                                <td>101,5</td>
+                                <td class="positive">335,0</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -378,45 +468,37 @@
                 uhnw_cac: parseFloat(document.getElementById('uhnw_cac').value),
                 uhnw_fee: parseFloat(document.getElementById('uhnw_fee').value),
                 uhnw_churn: parseFloat(document.getElementById('uhnw_churn').value) / 100,
-                asp_cac: parseFloat(document.getElementById('asp_cac').value),
-                asp_fee: parseFloat(document.getElementById('asp_fee').value),
-                asp_churn: parseFloat(document.getElementById('asp_churn').value) / 100,
+                undiscovered_cac: parseFloat(document.getElementById('undiscovered_cac').value),
+                undiscovered_fee: parseFloat(document.getElementById('undiscovered_fee').value),
+                undiscovered_churn: parseFloat(document.getElementById('undiscovered_churn').value) / 100,
                 rev_rate: parseFloat(document.getElementById('rev_rate').value) / 100,
-                data_revenue: parseFloat(document.getElementById('data_revenue').value) * 1e6
+                data_revenue: parseFloat(document.getElementById('data_revenue').value) * 1e6,
+                // Customer numbers for each year
+                uhnw_customers: [
+                    parseFloat(document.getElementById('uhnw_0').value),
+                    parseFloat(document.getElementById('uhnw_1').value),
+                    parseFloat(document.getElementById('uhnw_2').value),
+                    parseFloat(document.getElementById('uhnw_3').value),
+                    parseFloat(document.getElementById('uhnw_4').value),
+                    parseFloat(document.getElementById('uhnw_5').value),
+                    parseFloat(document.getElementById('uhnw_6').value),
+                    parseFloat(document.getElementById('uhnw_7').value)
+                ],
+                undiscovered_customers: [
+                    parseFloat(document.getElementById('undiscovered_0').value),
+                    parseFloat(document.getElementById('undiscovered_1').value),
+                    parseFloat(document.getElementById('undiscovered_2').value),
+                    parseFloat(document.getElementById('undiscovered_3').value),
+                    parseFloat(document.getElementById('undiscovered_4').value),
+                    parseFloat(document.getElementById('undiscovered_5').value),
+                    parseFloat(document.getElementById('undiscovered_6').value),
+                    parseFloat(document.getElementById('undiscovered_7').value)
+                ]
             };
-        }
-        
-        function getCustomerProjections() {
-            const uhnw_customers = [
-                0,
-                parseInt(document.getElementById('uhnw_y1').value),
-                parseInt(document.getElementById('uhnw_y2').value),
-                parseInt(document.getElementById('uhnw_y3').value),
-                parseInt(document.getElementById('uhnw_y4').value),
-                parseInt(document.getElementById('uhnw_y5').value),
-                parseInt(document.getElementById('uhnw_y6').value),
-                parseInt(document.getElementById('uhnw_y7').value),
-                parseInt(document.getElementById('uhnw_y8').value)
-            ];
-            
-            const asp_customers = [
-                0,
-                parseInt(document.getElementById('asp_y1').value),
-                parseInt(document.getElementById('asp_y2').value),
-                parseInt(document.getElementById('asp_y3').value),
-                parseInt(document.getElementById('asp_y4').value),
-                parseInt(document.getElementById('asp_y5').value),
-                parseInt(document.getElementById('asp_y6').value),
-                parseInt(document.getElementById('asp_y7').value),
-                parseInt(document.getElementById('asp_y8').value)
-            ];
-            
-            return { uhnw_customers, asp_customers };
         }
         
         function runCalculation() {
             const inputs = getInputs();
-            const { uhnw_customers, asp_customers } = getCustomerProjections();
             
             const results = [];
             let cumCF = -inputs.initial_capex;
@@ -426,9 +508,7 @@
                 if (year === 0) {
                     results.push({
                         year: 0,
-                        uhnw_customers: 0,
-                        asp_customers: 0,
-                        total_customers: 0,
+                        customers: 0,
                         revenue: 0,
                         ebitda: 0,
                         fcf: -inputs.initial_capex,
@@ -437,31 +517,31 @@
                     continue;
                 }
                 
-                // Calculate customers
-                const uhnw_active = uhnw_customers[year];
-                const asp_active = asp_customers[year];
-                const total_customers = uhnw_active + asp_active;
+                // Get customer numbers directly from inputs
+                const uhnw_active = inputs.uhnw_customers[year];
+                const undiscovered_active = inputs.undiscovered_customers[year];
+                const total_customers = uhnw_active + undiscovered_active;
                 
                 // Calculate new customers (simplified)
-                const uhnw_prev = year > 0 ? uhnw_customers[year - 1] : 0;
-                const asp_prev = year > 0 ? asp_customers[year - 1] : 0;
+                const uhnw_prev = year > 0 ? inputs.uhnw_customers[year - 1] : 0;
+                const undiscovered_prev = year > 0 ? inputs.undiscovered_customers[year - 1] : 0;
                 
                 const uhnw_retained = Math.round(uhnw_prev * (1 - inputs.uhnw_churn));
-                const asp_retained = Math.round(asp_prev * (1 - inputs.asp_churn));
+                const undiscovered_retained = Math.round(undiscovered_prev * (1 - inputs.undiscovered_churn));
                 
                 const uhnw_new = Math.max(0, uhnw_active - uhnw_retained);
-                const asp_new = Math.max(0, asp_active - asp_retained);
+                const undiscovered_new = Math.max(0, undiscovered_active - undiscovered_retained);
                 
-                const total_cac = uhnw_new * inputs.uhnw_cac + asp_new * inputs.asp_cac;
+                const total_cac = uhnw_new * inputs.uhnw_cac + undiscovered_new * inputs.undiscovered_cac;
                 
                 // Revenue calculation
                 const uhnw_card_rev = uhnw_active * 120000 * inputs.rev_rate;
-                const asp_card_rev = asp_active * 45000 * inputs.rev_rate;
+                const undiscovered_card_rev = undiscovered_active * 45000 * inputs.rev_rate;
                 const uhnw_fee_rev = uhnw_active * inputs.uhnw_fee;
-                const asp_fee_rev = asp_active * inputs.asp_fee;
+                const undiscovered_fee_rev = undiscovered_active * inputs.undiscovered_fee;
                 const data_rev = year >= 3 ? inputs.data_revenue : 0;
                 
-                const total_revenue = uhnw_card_rev + asp_card_rev + uhnw_fee_rev + asp_fee_rev + data_rev;
+                const total_revenue = uhnw_card_rev + undiscovered_card_rev + uhnw_fee_rev + undiscovered_fee_rev + data_rev;
                 
                 // Variable OpEx
                 const var_opex = total_customers * 200;
@@ -483,9 +563,7 @@
                 
                 results.push({
                     year,
-                    uhnw_customers: uhnw_active,
-                    asp_customers: asp_active,
-                    total_customers: total_customers,
+                    customers: total_customers,
                     revenue: total_revenue,
                     ebitda,
                     fcf,
@@ -524,15 +602,21 @@
             const tbody = document.querySelector('#financial-table tbody');
             tbody.innerHTML = '';
             
-            results.forEach(row => {
+            const inputs = getInputs(); // Get inputs to access customer numbers
+            
+            results.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 if (row.year === 4) tr.classList.add('highlight');
                 
+                // Get segment-specific customer numbers
+                const uhnw_cust = row.year === 0 ? 0 : inputs.uhnw_customers[row.year];
+                const undiscovered_cust = row.year === 0 ? 0 : inputs.undiscovered_customers[row.year];
+                
                 tr.innerHTML = `
                     <td>${row.year}</td>
-                    <td>${row.uhnw_customers ? row.uhnw_customers.toLocaleString('de-DE') : '0'}</td>
-                    <td>${row.asp_customers ? row.asp_customers.toLocaleString('de-DE') : '0'}</td>
-                    <td>${row.total_customers.toLocaleString('de-DE')}</td>
+                    <td>${uhnw_cust.toLocaleString('de-DE')}</td>
+                    <td>${undiscovered_cust.toLocaleString('de-DE')}</td>
+                    <td>${row.customers.toLocaleString('de-DE')}</td>
                     <td>${(row.revenue / 1e6).toFixed(1).replace('.', ',')}</td>
                     <td>${(row.ebitda / 1e6).toFixed(1).replace('.', ',')}</td>
                     <td class="${row.fcf >= 0 ? 'positive' : 'negative'}">${(row.fcf / 1e6).toFixed(1).replace('.', ',')}</td>
@@ -661,39 +745,39 @@
         }
         
         function resetToDefaults() {
-            // Reset main parameters
             document.getElementById('initial_capex').value = '18';
             document.getElementById('discount').value = '10';
             document.getElementById('tax').value = '28';
             document.getElementById('fix_opex').value = '6';
-            document.getElementById('uhnw_cac').value = '900';
-            document.getElementById('uhnw_fee').value = '5000';
-            document.getElementById('uhnw_churn').value = '8';
-            document.getElementById('asp_cac').value = '400';
-            document.getElementById('asp_fee').value = '1200';
-            document.getElementById('asp_churn').value = '18';
             document.getElementById('rev_rate').value = '0.65';
             document.getElementById('data_revenue').value = '3';
             
-            // Reset UHNW customer projections
-            document.getElementById('uhnw_y1').value = '200';
-            document.getElementById('uhnw_y2').value = '600';
-            document.getElementById('uhnw_y3').value = '1200';
-            document.getElementById('uhnw_y4').value = '2000';
-            document.getElementById('uhnw_y5').value = '3000';
-            document.getElementById('uhnw_y6').value = '3500';
-            document.getElementById('uhnw_y7').value = '3800';
-            document.getElementById('uhnw_y8').value = '4000';
+            document.getElementById('uhnw_cac').value = '900';
+            document.getElementById('uhnw_fee').value = '5000';
+            document.getElementById('uhnw_churn').value = '8';
             
-            // Reset Aspirational customer projections
-            document.getElementById('asp_y1').value = '0';
-            document.getElementById('asp_y2').value = '800';
-            document.getElementById('asp_y3').value = '2000';
-            document.getElementById('asp_y4').value = '6000';
-            document.getElementById('asp_y5').value = '10000';
-            document.getElementById('asp_y6').value = '14000';
-            document.getElementById('asp_y7').value = '17000';
-            document.getElementById('asp_y8').value = '20000';
+            document.getElementById('undiscovered_cac').value = '400';
+            document.getElementById('undiscovered_fee').value = '1200';
+            document.getElementById('undiscovered_churn').value = '18';
+            
+            // Reset customer numbers
+            document.getElementById('uhnw_0').value = '200';
+            document.getElementById('uhnw_1').value = '600';
+            document.getElementById('uhnw_2').value = '1200';
+            document.getElementById('uhnw_3').value = '2000';
+            document.getElementById('uhnw_4').value = '3000';
+            document.getElementById('uhnw_5').value = '3500';
+            document.getElementById('uhnw_6').value = '3800';
+            document.getElementById('uhnw_7').value = '4000';
+            
+            document.getElementById('undiscovered_0').value = '0';
+            document.getElementById('undiscovered_1').value = '800';
+            document.getElementById('undiscovered_2').value = '2000';
+            document.getElementById('undiscovered_3').value = '6000';
+            document.getElementById('undiscovered_4').value = '10000';
+            document.getElementById('undiscovered_5').value = '14000';
+            document.getElementById('undiscovered_6').value = '17000';
+            document.getElementById('undiscovered_7').value = '20000';
             
             updateDisplay();
         }
@@ -705,8 +789,10 @@
                 input.addEventListener('input', updateDisplay);
             });
             
+            // Initial load with default values
             updateDisplay();
         });
     </script>
 </body>
 </html>
+           
